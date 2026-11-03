@@ -4,6 +4,7 @@ from src.data import (
     EXAMPLE_REPLY,
     SYSTEM_PROMPT,
     build_messages,
+    load_splits,
     render_prompt,
     split_solution,
     to_sft_target,
@@ -57,6 +58,30 @@ def test_build_messages_ends_with_the_question_and_prefill():
 def test_the_worked_example_obeys_the_format_it_teaches():
     assert is_format_valid(EXAMPLE_REPLY)
     assert is_correct(EXAMPLE_REPLY, "41")
+
+
+@pytest.fixture(scope="module")
+def splits():
+    return load_splits(val_size=50, seed=42)
+
+
+def test_loaded_splits_use_the_current_prompt_not_a_stale_cache(splits):
+    for name in ("train", "validation", "test"):
+        row = splits[name][0]
+        expected = build_messages(row["prompt"][-2]["content"])
+        assert row["prompt"] == expected
+        assert not row["target"].startswith(PREFILL)
+
+
+def test_splits_do_not_overlap(splits):
+    def questions(name):
+        return {messages[-2]["content"] for messages in splits[name]["prompt"]}
+
+    train, validation, test = questions("train"), questions("validation"), questions("test")
+    assert not train & validation
+    assert not train & test
+    assert not validation & test
+    assert len(splits["validation"]) == 50
 
 
 def test_render_prompt_continues_the_final_message():

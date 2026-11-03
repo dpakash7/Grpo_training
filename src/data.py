@@ -61,10 +61,14 @@ def load_splits(val_size: int, seed: int) -> dict:
     from datasets import load_dataset
 
     raw = load_dataset("openai/gsm8k", "main")
-    columns = raw["train"].column_names
     split = raw["train"].train_test_split(test_size=val_size, seed=seed)
+
+    def prepare(dataset):
+        # The cache keys on _to_example alone, so a prompt change would silently reuse stale prompts.
+        return dataset.map(_to_example, remove_columns=dataset.column_names, load_from_cache_file=False)
+
     return {
-        "train": split["train"].map(_to_example, remove_columns=columns),
-        "validation": split["test"].map(_to_example, remove_columns=columns),
-        "test": raw["test"].map(_to_example, remove_columns=columns),
+        "train": prepare(split["train"]),
+        "validation": prepare(split["test"]),
+        "test": prepare(raw["test"]),
     }
