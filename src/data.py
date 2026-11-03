@@ -58,14 +58,15 @@ def _to_example(row: dict) -> dict:
 
 def load_splits(val_size: int, seed: int) -> dict:
     """Train and validation come from GSM8K train; the test split is only for final evaluation."""
-    from datasets import load_dataset
+    from datasets import disable_caching, load_dataset
 
+    # Cache keys ignore what a mapped function calls, so changed prompts silently reused stale rows.
+    disable_caching()
     raw = load_dataset("openai/gsm8k", "main")
     split = raw["train"].train_test_split(test_size=val_size, seed=seed)
 
     def prepare(dataset):
-        # The cache keys on _to_example alone, so a prompt change would silently reuse stale prompts.
-        return dataset.map(_to_example, remove_columns=dataset.column_names, load_from_cache_file=False)
+        return dataset.map(_to_example, remove_columns=dataset.column_names)
 
     return {
         "train": prepare(split["train"]),

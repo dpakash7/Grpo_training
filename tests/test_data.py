@@ -73,6 +73,12 @@ def test_loaded_splits_use_the_current_prompt_not_a_stale_cache(splits):
         assert not row["target"].startswith(PREFILL)
 
 
+def test_loading_turns_off_dataset_caching_for_later_maps(splits):
+    from datasets import is_caching_enabled
+
+    assert not is_caching_enabled()
+
+
 def test_splits_do_not_overlap(splits):
     def questions(name):
         return {messages[-2]["content"] for messages in splits[name]["prompt"]}

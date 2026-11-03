@@ -16,7 +16,7 @@ from src.common import (
 )
 from src.data import load_splits, render_prompt
 from src.eval import make_validator
-from src.rewards import correctness_reward, format_reward, make_length_penalty
+from src.rewards import PREFILL, correctness_reward, format_reward, make_length_penalty
 
 
 def main() -> None:
@@ -59,6 +59,8 @@ def main() -> None:
     train = splits["train"].remove_columns("target").map(
         lambda row: {"prompt": render_prompt(tokenizer, row["prompt"])}
     )
+    if not train[0]["prompt"].endswith(PREFILL):
+        raise RuntimeError("GRPO prompt does not end with the pre-filled tag")
     monitor = TrainingMonitor(cfg, "grpo", make_validator(splits["validation"], cfg))
     trainer = GRPOTrainer(
         model=cfg["model"],
