@@ -27,6 +27,7 @@ grpo:
   num_generations: 8
   per_device_train_batch_size: 8
   gradient_accumulation_steps: 4
+  gradient_checkpointing: true
   beta: 0.001
   # Group scaling turned the tiny length penalty into the main signal and collapsed replies in the first smoke run.
   scale_rewards: batch

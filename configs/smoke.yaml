@@ -27,6 +27,7 @@ grpo:
   num_generations: 4
   per_device_train_batch_size: 4
   gradient_accumulation_steps: 1
+  gradient_checkpointing: true
   beta: 0.001
   scale_rewards: batch
   temperature: 1.0

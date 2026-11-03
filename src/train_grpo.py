@@ -42,6 +42,7 @@ def main() -> None:
         num_generations=grpo["num_generations"],
         per_device_train_batch_size=grpo["per_device_train_batch_size"],
         gradient_accumulation_steps=grpo["gradient_accumulation_steps"],
+        gradient_checkpointing=grpo["gradient_checkpointing"],
         max_completion_length=cfg["max_completion_tokens"],
         beta=grpo["beta"],
         scale_rewards=grpo["scale_rewards"],
