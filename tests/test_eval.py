@@ -8,6 +8,7 @@ def row(correct, gold="1"):
     return {
         "gold": gold,
         "correct": correct,
+        "lenient_correct": correct,
         "format_valid": True,
         "length_tokens": 10,
         "clipped": False,
@@ -70,7 +71,7 @@ def test_compare_refuses_different_problem_sets():
 class FakeTokenizer:
     eos_token_id = 99
 
-    def apply_chat_template(self, messages, tokenize, add_generation_prompt):
+    def apply_chat_template(self, messages, tokenize, continue_final_message):
         return "p p p"
 
     def __call__(self, text, add_special_tokens):

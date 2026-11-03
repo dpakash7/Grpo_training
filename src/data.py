@@ -1,10 +1,19 @@
 import re
 
-from src.rewards import normalize_number
+from src.rewards import PREFILL, normalize_number
 
 SYSTEM_PROMPT = (
     "You solve math word problems. Reason step by step inside <think></think>, "
     "then give only the final number inside <answer></answer>."
+)
+# Hand-written, not from GSM8K. Chosen on validation data: without it and the pre-filled tag the base model almost never uses the format.
+EXAMPLE_QUESTION = (
+    "A shop packs 12 pens in each box. It sells 3 boxes and gives away 5 pens "
+    "from a fourth box. How many pens left the shop?"
+)
+EXAMPLE_REPLY = (
+    "<think>3 boxes hold 3 * 12 = 36 pens. Adding the 5 given away makes 36 + 5 = 41 pens.</think>\n"
+    "<answer>41</answer>"
 )
 _CALCULATOR_RE = re.compile(r"<<.*?>>")
 
@@ -12,8 +21,15 @@ _CALCULATOR_RE = re.compile(r"<<.*?>>")
 def build_messages(question: str) -> list[dict]:
     return [
         {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": EXAMPLE_QUESTION},
+        {"role": "assistant", "content": EXAMPLE_REPLY},
         {"role": "user", "content": question},
+        {"role": "assistant", "content": PREFILL},
     ]
+
+
+def render_prompt(tokenizer, messages: list[dict]) -> str:
+    return tokenizer.apply_chat_template(messages, tokenize=False, continue_final_message=True)
 
 
 def split_solution(solution: str) -> tuple[str, str]:
@@ -26,9 +42,10 @@ def split_solution(solution: str) -> tuple[str, str]:
 
 
 def to_sft_target(solution: str) -> str:
+    """The reply as it continues after the pre-filled <think> tag."""
     reasoning, answer = split_solution(solution)
     reasoning = _CALCULATOR_RE.sub("", reasoning)
-    return f"<think>{reasoning}</think>\n<answer>{answer}</answer>"
+    return f"{reasoning}</think>\n<answer>{answer}</answer>"
 
 
 def _to_example(row: dict) -> dict:

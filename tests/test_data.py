@@ -1,7 +1,14 @@
 import pytest
 
-from src.data import SYSTEM_PROMPT, build_messages, split_solution, to_sft_target
-from src.rewards import is_correct, is_format_valid
+from src.data import (
+    EXAMPLE_REPLY,
+    SYSTEM_PROMPT,
+    build_messages,
+    render_prompt,
+    split_solution,
+    to_sft_target,
+)
+from src.rewards import PREFILL, format_reward, correctness_reward, is_correct, is_format_valid
 
 SOLUTION = "She sold 48/2 = <<48/2=24>>24 clips.\nTotal is 48+24 = <<48+24=72>>72.\n#### 72"
 
@@ -27,13 +34,35 @@ def test_sft_target_strips_calculator_annotations():
     assert "<<" not in target and ">>" not in target
 
 
-def test_sft_target_earns_full_marks_from_the_rewards():
+def test_sft_target_continues_after_the_prefill():
     target = to_sft_target(SOLUTION)
-    assert is_format_valid(target)
-    assert is_correct(target, "72")
+    assert not target.startswith(PREFILL)
+    assert is_format_valid(PREFILL + target)
+    assert is_correct(PREFILL + target, "72")
 
 
-def test_build_messages_uses_the_fixed_prompt():
+def test_rewards_score_an_sft_target_as_if_it_were_generated():
+    target = to_sft_target(SOLUTION)
+    assert format_reward([target]) == [1.0]
+    assert correctness_reward([target], answer=["72"]) == [1.0]
+
+
+def test_build_messages_ends_with_the_question_and_prefill():
     messages = build_messages("What is 2+2?")
     assert messages[0] == {"role": "system", "content": SYSTEM_PROMPT}
-    assert messages[1] == {"role": "user", "content": "What is 2+2?"}
+    assert messages[-2] == {"role": "user", "content": "What is 2+2?"}
+    assert messages[-1] == {"role": "assistant", "content": PREFILL}
+
+
+def test_the_worked_example_obeys_the_format_it_teaches():
+    assert is_format_valid(EXAMPLE_REPLY)
+    assert is_correct(EXAMPLE_REPLY, "41")
+
+
+def test_render_prompt_continues_the_final_message():
+    class Tokenizer:
+        def apply_chat_template(self, messages, tokenize, continue_final_message):
+            assert tokenize is False and continue_final_message is True
+            return "rendered"
+
+    assert render_prompt(Tokenizer(), []) == "rendered"

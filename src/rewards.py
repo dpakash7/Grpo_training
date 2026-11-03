@@ -1,12 +1,15 @@
 import re
 from decimal import Decimal, InvalidOperation
 
+PREFILL = "<think>"
+
 _ANSWER_RE = re.compile(r"<answer>(.*?)</answer>", re.DOTALL)
 _FORMAT_RE = re.compile(
     r"\s*<think>(?P<think>.+?)</think>\s*<answer>(?P<answer>.+?)</answer>\s*", re.DOTALL
 )
 _PLAIN_NUMBER_RE = re.compile(r"[+-]?(\d+(\.\d*)?|\.\d+)", re.ASCII)
 _GROUPED_NUMBER_RE = re.compile(r"[+-]?\d{1,3}(,\d{3})+(\.\d*)?", re.ASCII)
+_ANY_NUMBER_RE = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?|\.\d+", re.ASCII)
 _TAGS = ("<think>", "</think>", "<answer>", "</answer>")
 
 
@@ -49,11 +52,22 @@ def is_correct(completion: str, gold: str) -> bool:
     return predicted is not None and predicted == normalize_number(gold)
 
 
+def last_number(completion: str) -> str | None:
+    """Last number anywhere in the text. Measures maths apart from format; never used as a reward."""
+    matches = _ANY_NUMBER_RE.findall(completion)
+    return normalize_number(matches[-1]) if matches else None
+
+
+def is_lenient_correct(completion: str, gold: str) -> bool:
+    predicted = last_number(completion)
+    return predicted is not None and predicted == normalize_number(gold)
+
+
 def _text(completion) -> str:
-    # TRL passes plain strings for string prompts and message lists for conversational ones.
-    if isinstance(completion, str):
-        return completion
-    return completion[-1]["content"]
+    # TRL passes plain strings for string prompts and message lists for conversational ones,
+    # and returns only generated text, so the pre-filled tag must be restored before scoring.
+    text = completion if isinstance(completion, str) else completion[-1]["content"]
+    return PREFILL + text
 
 
 def correctness_reward(completions, answer, **kwargs) -> list[float]:

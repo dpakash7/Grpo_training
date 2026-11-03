@@ -14,8 +14,8 @@ from src.common import (
     record_environment,
     results_dir,
 )
-from src.data import load_splits
-from src.rewards import is_correct, is_format_valid
+from src.data import load_splits, render_prompt
+from src.rewards import PREFILL, is_correct, is_format_valid, is_lenient_correct
 
 MODELS = ("base", "sft", "grpo")
 
@@ -45,6 +45,7 @@ def score(completions: list[str], lengths: list[int], clipped: list[bool], golds
             "completion": completion,
             "gold": gold,
             "correct": is_correct(completion, gold),
+            "lenient_correct": is_lenient_correct(completion, gold),
             "format_valid": is_format_valid(completion),
             "length_tokens": length,
             "clipped": was_clipped,
@@ -58,6 +59,7 @@ def summarize(rows: list[dict]) -> dict:
     return {
         "n": n,
         "accuracy": sum(r["correct"] for r in rows) / n,
+        "lenient_accuracy": sum(r["lenient_correct"] for r in rows) / n,
         "format_valid_rate": sum(r["format_valid"] for r in rows) / n,
         "mean_length_tokens": sum(r["length_tokens"] for r in rows) / n,
         "clipped_rate": sum(r["clipped"] for r in rows) / n,
@@ -94,10 +96,7 @@ def generate(model, tokenizer, prompts, max_new_tokens, batch_size):
     stop_ids = torch.tensor([tokenizer.pad_token_id, tokenizer.eos_token_id], device=device)
     completions, lengths, clipped = [], [], []
     for start in range(0, len(prompts), batch_size):
-        texts = [
-            tokenizer.apply_chat_template(p, tokenize=False, add_generation_prompt=True)
-            for p in prompts[start : start + batch_size]
-        ]
+        texts = [render_prompt(tokenizer, p) for p in prompts[start : start + batch_size]]
         inputs = tokenizer(texts, return_tensors="pt", padding=True, add_special_tokens=False).to(device)
         # Qwen ships sampling defaults and a repetition penalty; greedy must override all of them.
         output = model.generate(
@@ -113,7 +112,7 @@ def generate(model, tokenizer, prompts, max_new_tokens, batch_size):
         )
         new_tokens = output[:, inputs["input_ids"].shape[1] :]
         is_stop = torch.isin(new_tokens, stop_ids)
-        completions += tokenizer.batch_decode(new_tokens, skip_special_tokens=True)
+        completions += [PREFILL + text for text in tokenizer.batch_decode(new_tokens, skip_special_tokens=True)]
         lengths += (~is_stop).sum(dim=1).tolist()
         clipped += (~is_stop.any(dim=1)).tolist()
     return completions, lengths, clipped

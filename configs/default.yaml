@@ -2,7 +2,7 @@
 run_name: default
 seed: 42
 model: Qwen/Qwen2.5-0.5B-Instruct
-max_completion_tokens: 384
+max_completion_tokens: 256
 budget_minutes: 40
 validate_every_minutes: 5
 val_size: 200
@@ -19,8 +19,8 @@ rewards:
   correctness: 1.0
   format: 0.1
   length: 0.05
-  free_chars: 1000
-  max_chars: 1600
+  free_chars: 700
+  max_chars: 1100
 
 grpo:
   learning_rate: 2.0e-5
@@ -28,6 +28,8 @@ grpo:
   per_device_train_batch_size: 8
   gradient_accumulation_steps: 4
   beta: 0.001
+  # Group scaling turned the tiny length penalty into the main signal and collapsed replies in the first smoke run.
+  scale_rewards: batch
   temperature: 1.0
   max_grad_norm: 1.0
   max_steps: 100000

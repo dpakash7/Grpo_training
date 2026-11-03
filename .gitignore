@@ -3,6 +3,8 @@ __pycache__/
 .pytest_cache/
 *.pyc
 checkpoints/
+results/smoke/
+results/calibrate/
 wandb/
 .env
 .ipynb_checkpoints/

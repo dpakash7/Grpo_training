@@ -14,7 +14,7 @@ from src.common import (
     record_environment,
     results_dir,
 )
-from src.data import load_splits
+from src.data import load_splits, render_prompt
 from src.eval import make_validator
 from src.rewards import correctness_reward, format_reward, make_length_penalty
 
@@ -44,6 +44,7 @@ def main() -> None:
         gradient_accumulation_steps=grpo["gradient_accumulation_steps"],
         max_completion_length=cfg["max_completion_tokens"],
         beta=grpo["beta"],
+        scale_rewards=grpo["scale_rewards"],
         temperature=grpo["temperature"],
         reward_weights=[rewards["correctness"], rewards["format"], rewards["length"]],
         max_grad_norm=grpo["max_grad_norm"],
@@ -52,6 +53,11 @@ def main() -> None:
         save_steps=grpo["save_steps"],
         save_total_limit=2,
         report_to="none",
+    )
+    # TRL renders message prompts with add_generation_prompt=True, which would close the pre-filled
+    # <think> turn. Rendered strings are tokenized as-is, so training samples from the prompt eval uses.
+    train = splits["train"].remove_columns("target").map(
+        lambda row: {"prompt": render_prompt(tokenizer, row["prompt"])}
     )
     monitor = TrainingMonitor(cfg, "grpo", make_validator(splits["validation"], cfg))
     trainer = GRPOTrainer(
@@ -62,7 +68,7 @@ def main() -> None:
             make_length_penalty(rewards["free_chars"], rewards["max_chars"]),
         ],
         args=args,
-        train_dataset=splits["train"].remove_columns("target"),
+        train_dataset=train,
         processing_class=tokenizer,
         peft_config=LoraConfig(
             r=lora["r"],

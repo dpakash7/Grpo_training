@@ -14,7 +14,7 @@ from src.common import (
     record_environment,
     results_dir,
 )
-from src.data import load_splits
+from src.data import load_splits, render_prompt
 from src.eval import make_validator
 
 IGNORE_INDEX = -100
@@ -22,8 +22,7 @@ IGNORE_INDEX = -100
 
 def tokenize_example(tokenizer, prompt: list[dict], target: str, max_length: int) -> dict:
     """Labels cover only the assistant reply, so the model is never trained to reproduce the prompt."""
-    prompt_text = tokenizer.apply_chat_template(prompt, tokenize=False, add_generation_prompt=True)
-    prompt_ids = tokenizer(prompt_text, add_special_tokens=False)["input_ids"]
+    prompt_ids = tokenizer(render_prompt(tokenizer, prompt), add_special_tokens=False)["input_ids"]
     target_ids = tokenizer(target, add_special_tokens=False)["input_ids"] + [tokenizer.eos_token_id]
     input_ids = (prompt_ids + target_ids)[:max_length]
     labels = ([IGNORE_INDEX] * len(prompt_ids) + target_ids)[:max_length]

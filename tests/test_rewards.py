@@ -1,10 +1,13 @@
 import pytest
 
 from src.rewards import (
+    PREFILL,
     correctness_reward,
     format_reward,
     is_correct,
     is_format_valid,
+    is_lenient_correct,
+    last_number,
     make_length_penalty,
     normalize_number,
     parse_answer,
@@ -133,13 +136,44 @@ def test_hedging_does_not_earn_credit_unless_last_guess_is_right():
     assert is_correct("<answer>19</answer><answer>18</answer>", "18")
 
 
+@pytest.mark.parametrize(
+    "completion, expected",
+    [
+        ("So it takes 3 bolts of fiber.", "3"),
+        ("First 2, then 1,000 total.", "1000"),
+        ("The cost is $18.50.", "18.5"),
+        ("<think>2+2</think><answer>4</answer>", "4"),
+        ("no digits here", None),
+    ],
+)
+def test_last_number(completion, expected):
+    assert last_number(completion) == expected
+
+
+def test_lenient_scoring_credits_right_maths_in_the_wrong_format():
+    completion = "So it takes a total of 3 bolts."
+    assert is_lenient_correct(completion, "3")
+    assert not is_correct(completion, "3")
+
+
+def test_rewards_restore_the_prefilled_tag_before_scoring():
+    generated = "2+2=4</think><answer>4</answer>"
+    assert not is_format_valid(generated)
+    assert is_format_valid(PREFILL + generated)
+    assert format_reward([generated]) == [1.0]
+
+
+def test_a_doubled_think_tag_is_not_rewarded():
+    assert format_reward(["<think>2+2=4</think><answer>4</answer>"]) == [0.0]
+
+
 def test_correctness_reward_batch():
     completions = ["<answer>1</answer>", "<answer>3</answer>", "nothing"]
     assert correctness_reward(completions, answer=["1", "2", "3"]) == [1.0, 0.0, 0.0]
 
 
 def test_rewards_accept_conversational_completions():
-    completion = [{"role": "assistant", "content": "<think>x</think><answer>4</answer>"}]
+    completion = [{"role": "assistant", "content": "x</think><answer>4</answer>"}]
     assert correctness_reward([completion], answer=["4"]) == [1.0]
     assert format_reward([completion]) == [1.0]
 
@@ -149,13 +183,15 @@ def test_rewards_ignore_extra_trainer_kwargs():
 
 
 def test_format_reward_alone_cannot_mark_a_wrong_answer_correct():
-    wrong = "<think>x</think><answer>5</answer>"
+    wrong = "x</think><answer>5</answer>"
     assert format_reward([wrong]) == [1.0]
     assert correctness_reward([wrong], answer=["4"]) == [0.0]
 
 
 def test_length_penalty_shape():
-    penalty = make_length_penalty(free_chars=10, max_chars=20)
+    # The pre-filled tag counts toward length, so sizes here are offset by its length.
+    offset = len(PREFILL)
+    penalty = make_length_penalty(free_chars=10 + offset, max_chars=20 + offset)
     assert penalty.__name__ == "length_penalty"
     scores = penalty(["a" * 5, "a" * 10, "a" * 15, "a" * 20, "a" * 500])
     assert scores == [0.0, 0.0, -0.5, -1.0, -1.0]
