@@ -90,7 +90,9 @@ def main() -> None:
         save_total_limit=2,
         report_to="none",
     )
-    monitor = TrainingMonitor(cfg, "sft", make_validator(splits["validation"], cfg))
+    monitor = TrainingMonitor(
+        cfg, "sft", make_validator(splits["validation"], cfg), patience=sft["early_stop_patience"]
+    )
     trainer = Trainer(
         model=model,
         args=args,

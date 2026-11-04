@@ -41,6 +41,7 @@ sft:
   per_device_train_batch_size: 2
   gradient_accumulation_steps: 1
   max_length: 384
+  early_stop_patience: 3
   max_grad_norm: 1.0
   max_steps: 20
   logging_steps: 2

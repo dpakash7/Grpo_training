@@ -8,3 +8,4 @@ results/calibrate/
 wandb/
 .env
 .ipynb_checkpoints/
+logs/
