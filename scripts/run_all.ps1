@@ -8,7 +8,8 @@ $env:HF_HUB_DISABLE_PROGRESS_BARS = "1"
 
 # Stops Windows sleeping from idle while this script runs, without changing any power settings.
 Add-Type -Namespace Win32 -Name Power -MemberDefinition '[DllImport("kernel32.dll")] public static extern uint SetThreadExecutionState(uint esFlags);'
-[void][Win32.Power]::SetThreadExecutionState([uint32]"0x80000001")
+# 2147483649 is ES_CONTINUOUS | ES_SYSTEM_REQUIRED.
+[void][Win32.Power]::SetThreadExecutionState([uint32]2147483649)
 
 $python = ".\.venv\Scripts\python.exe"
 $logs = "logs\$RunName"
