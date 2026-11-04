@@ -1,0 +1,9 @@
+{
+  "steps": 414,
+  "training_minutes": 240.44,
+  "validation_minutes": 27.65,
+  "best_step": 355,
+  "best_val_accuracy": 0.66,
+  "stopped_early": false,
+  "completions_sampled": 13248
+}

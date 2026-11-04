@@ -1,0 +1,13 @@
+started 2026-11-04T10:15:49
+train_grpo start 2026-11-04T10:15:49
+train_grpo exit=0 2026-11-04T14:44:16
+train_sft start 2026-11-04T14:44:16
+train_sft exit=0 2026-11-04T16:24:55
+eval_base start 2026-11-04T16:24:55
+eval_base exit=0 2026-11-04T16:33:01
+eval_sft start 2026-11-04T16:33:01
+eval_sft exit=0 2026-11-04T16:44:48
+eval_grpo start 2026-11-04T16:44:48
+eval_grpo exit=0 2026-11-04T16:56:56
+compare start 2026-11-04T16:56:56
+compare exit=0 2026-11-04T16:57:03

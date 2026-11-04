@@ -1,0 +1,9 @@
+{
+  "steps": 1708,
+  "training_minutes": 90.06,
+  "validation_minutes": 10.07,
+  "best_step": 0,
+  "best_val_accuracy": 0.56,
+  "stopped_early": true,
+  "examples_trained": 13664
+}

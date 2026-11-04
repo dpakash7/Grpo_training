@@ -1,0 +1,42 @@
+{
+  "A_instruction_only": {
+    "n": 200,
+    "accuracy": 0.005,
+    "lenient_accuracy": 0.475,
+    "format_valid_rate": 0.0,
+    "mean_length_tokens": 199.945,
+    "clipped_rate": 0.315
+  },
+  "B_example_in_system": {
+    "n": 200,
+    "accuracy": 0.01,
+    "lenient_accuracy": 0.515,
+    "format_valid_rate": 0.0,
+    "mean_length_tokens": 190.09,
+    "clipped_rate": 0.24
+  },
+  "C_example_as_turn": {
+    "n": 200,
+    "accuracy": 0.0,
+    "lenient_accuracy": 0.565,
+    "format_valid_rate": 0.0,
+    "mean_length_tokens": 165.275,
+    "clipped_rate": 0.18
+  },
+  "D_prefill_only": {
+    "n": 200,
+    "accuracy": 0.005,
+    "lenient_accuracy": 0.13,
+    "format_valid_rate": 0.0,
+    "mean_length_tokens": 27.645,
+    "clipped_rate": 0.01
+  },
+  "E_example_turn_and_prefill": {
+    "n": 200,
+    "accuracy": 0.56,
+    "lenient_accuracy": 0.595,
+    "format_valid_rate": 0.885,
+    "mean_length_tokens": 110.135,
+    "clipped_rate": 0.015
+  }
+}
