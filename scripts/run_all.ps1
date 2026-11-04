@@ -36,5 +36,6 @@ $ok = @(
 )
 if ($ok -notcontains $false) {
     [void](Step "compare" @("-m", "src.eval", "--config", $Config, "--compare"))
+    [void](Step "plots" @("-m", "src.plots", "--config", $Config))
 }
 Set-Content "$logs\done.txt" "finished $(Get-Date -Format s)"
