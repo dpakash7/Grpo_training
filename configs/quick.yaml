@@ -1,0 +1,48 @@
+# Under-2-hour reproduction: 30 minutes of training per model, then the full test set.
+run_name: quick
+seed: 42
+model: Qwen/Qwen2.5-0.5B-Instruct
+max_completion_tokens: 256
+budget_minutes: 30
+validate_every_minutes: 10
+val_size: 200
+eval_batch_size: 32
+eval_limit: null
+
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.0
+  target_modules: [q_proj, k_proj, v_proj, o_proj]
+
+rewards:
+  correctness: 1.0
+  format: 0.1
+  length: 0.05
+  free_chars: 700
+  max_chars: 1100
+
+grpo:
+  learning_rate: 2.0e-5
+  num_generations: 8
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 8
+  gradient_checkpointing: true
+  beta: 0.001
+  scale_rewards: batch
+  temperature: 1.0
+  max_grad_norm: 1.0
+  max_steps: 100000
+  logging_steps: 5
+  save_steps: 200
+
+sft:
+  learning_rate: 1.0e-4
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 1
+  max_length: 768
+  early_stop_patience: 3
+  max_grad_norm: 1.0
+  max_steps: 100000
+  logging_steps: 20
+  save_steps: 500

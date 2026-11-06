@@ -1,0 +1,67 @@
+{
+  "python": "3.12.10",
+  "packages": {
+    "torch": "2.14.1+cu126",
+    "trl": "1.17.1",
+    "transformers": "5.22.1",
+    "peft": "0.21.2",
+    "datasets": "5.1.0",
+    "accelerate": "1.15.0"
+  },
+  "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU",
+  "git_commit": "4356de411fce00bb838dc7c02278b81d11f1a221",
+  "config": {
+    "run_name": "default",
+    "seed": 42,
+    "model": "Qwen/Qwen2.5-0.5B-Instruct",
+    "max_completion_tokens": 256,
+    "budget_minutes": 240,
+    "validate_every_minutes": 30,
+    "val_size": 200,
+    "eval_batch_size": 32,
+    "eval_limit": null,
+    "lora": {
+      "r": 16,
+      "alpha": 32,
+      "dropout": 0.0,
+      "target_modules": [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj"
+      ]
+    },
+    "rewards": {
+      "correctness": 1.0,
+      "format": 0.1,
+      "length": 0.05,
+      "free_chars": 700,
+      "max_chars": 1100
+    },
+    "grpo": {
+      "learning_rate": 2e-05,
+      "num_generations": 8,
+      "per_device_train_batch_size": 4,
+      "gradient_accumulation_steps": 8,
+      "gradient_checkpointing": true,
+      "beta": 0.001,
+      "scale_rewards": "batch",
+      "temperature": 1.0,
+      "max_grad_norm": 1.0,
+      "max_steps": 100000,
+      "logging_steps": 5,
+      "save_steps": 200
+    },
+    "sft": {
+      "learning_rate": 0.0001,
+      "per_device_train_batch_size": 8,
+      "gradient_accumulation_steps": 1,
+      "max_length": 768,
+      "early_stop_patience": 3,
+      "max_grad_norm": 1.0,
+      "max_steps": 100000,
+      "logging_steps": 20,
+      "save_steps": 500
+    }
+  }
+}

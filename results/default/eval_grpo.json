@@ -1,0 +1,8 @@
+{
+  "n": 1319,
+  "accuracy": 0.4746019711902957,
+  "lenient_accuracy": 0.4806671721000758,
+  "format_valid_rate": 0.9370735405610311,
+  "mean_length_tokens": 142.79302501895376,
+  "clipped_rate": 0.05079605761940864
+}

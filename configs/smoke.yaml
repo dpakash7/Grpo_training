@@ -1,0 +1,48 @@
+# Pipeline check only: about 20 steps, sized for a 6 GB GPU. Its numbers mean nothing.
+run_name: smoke
+seed: 42
+model: Qwen/Qwen2.5-0.5B-Instruct
+max_completion_tokens: 128
+budget_minutes: 10
+validate_every_minutes: 100
+val_size: 8
+eval_batch_size: 4
+eval_limit: 8
+
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.0
+  target_modules: [q_proj, k_proj, v_proj, o_proj]
+
+rewards:
+  correctness: 1.0
+  format: 0.1
+  length: 0.05
+  free_chars: 300
+  max_chars: 600
+
+grpo:
+  learning_rate: 2.0e-5
+  num_generations: 4
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 1
+  gradient_checkpointing: true
+  beta: 0.001
+  scale_rewards: batch
+  temperature: 1.0
+  max_grad_norm: 1.0
+  max_steps: 20
+  logging_steps: 2
+  save_steps: 10
+
+sft:
+  learning_rate: 1.0e-4
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 1
+  max_length: 384
+  early_stop_patience: 3
+  max_grad_norm: 1.0
+  max_steps: 20
+  logging_steps: 2
+  save_steps: 10
